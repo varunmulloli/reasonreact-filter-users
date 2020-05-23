@@ -12,11 +12,14 @@ let getIndexOfUser = (event: ReactEvent.Mouse.t) : option(int) => {
   };
 }
 
-let triggerModal = (users: array(User.user), openModal: option(User.user) => unit) => (event: ReactEvent.Mouse.t) => {
-  event 
-    -> getIndexOfUser
-    -> Belt.Option.flatMap(Belt.Array.get(users)) 
-    -> openModal;
+let setUserDetailsForModal = (users: array(User.user), setUserDetails: option(User.user) => unit, setModalOpen: bool => unit) => (event: ReactEvent.Mouse.t) => {
+  let maybeUser: option(User.user) = event -> getIndexOfUser -> Belt.Option.flatMap(Belt.Array.get(users));
+  setUserDetails(maybeUser);
+
+  switch maybeUser {
+  | Some(_) => setModalOpen(true)
+  | None => setModalOpen(false)
+  };
 };
 
 let renderUser = (index: int, user: User.user) : React.element => {
@@ -31,21 +34,33 @@ let renderUser = (index: int, user: User.user) : React.element => {
 
 [@react.component]
 let make = (~users: array(User.user)) => {
-  let (userDetails, setUserDetails) = React.useState(() => None);
+  let (userDetails, setUserDetails_) = React.useState(() => None);
+  let (modalOpen, setModalOpen_) = React.useState(() => false);
 
-  let openModal = (data: option(User.user)) : unit => setUserDetails(_ => data);
-  let closeModal = () : unit => setUserDetails(_ => None);
+  let setUserDetails = (data: option(User.user)) : unit => setUserDetails_(_ => data);
+  let setModalOpen = (data: bool) : unit => setModalOpen_(_ => data);
+
+  let emptyUsersArray = Belt.Array.length(users) === 0;
 
   <>
-    <ul className="green-blue-list" onClick=triggerModal(users, openModal)>
-      { users -> Belt.Array.mapWithIndex(renderUser) -> React.array }
-    </ul>
-
     {
-      switch userDetails {
-      | Some(user) => <UserDetails user=user closeModal=closeModal />
-      | None => React.string("")
+      switch emptyUsersArray {
+      | true => <span className="listing">{React.string("No results")}</span>
+      | false =>
+        <ul className="green-blue-list" onClick=setUserDetailsForModal(users, setUserDetails, setModalOpen)>
+          { users -> Belt.Array.mapWithIndex(renderUser) -> React.array }
+        </ul>
       };
     }
+    
+
+    <Modal modalOpen=modalOpen setModalOpen=setModalOpen>
+      {
+        switch userDetails {
+        | Some(user) => <UserDetails user=user setModalOpen=setModalOpen />
+        | None => React.string("")
+        };
+      }
+    </Modal>
   </>
 };
