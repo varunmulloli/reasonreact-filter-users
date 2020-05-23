@@ -27,7 +27,8 @@ let make = () => {
     None;
   });
 
-  let filteredUsers = Belt.Array.keep(users, usernameMatches(keyword));
+  let usersVisibilityData = Belt.Array.map(users, usernameMatches(keyword));
+  let usersWithVisibilityData = Belt.Array.zip(users, usersVisibilityData);
 
   <div className="shadow-01dp" style=containerCSS>
     <h5 style=Styles.withMarginBottom>{ React.string("Search") }</h5>
@@ -43,6 +44,6 @@ let make = () => {
 
     <h5 style=Styles.withMarginBottom>{ React.string("Results") }</h5>
 
-    <UsersList users=filteredUsers />
+    <UsersList usersWithVisibilityData=usersWithVisibilityData />
   </div>
 };

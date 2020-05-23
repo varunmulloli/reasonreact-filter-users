@@ -22,8 +22,12 @@ let setUserDetailsForModal = (users: array(User.user), setUserDetails: option(Us
   };
 };
 
-let renderUser = (index: int, user: User.user) : React.element => {
-  <li key=string_of_int(index) className="green-blue-list-item" style=Styles.clickableItem>
+let renderUser = (index: int, userWithVisibilityData: (User.user, bool)) : React.element => {
+  let (user: User.user, showUser: bool) = userWithVisibilityData;
+  
+  let userClassName = showUser ? Styles.clickableItem : Styles.hiddenItem;
+
+  <li key=string_of_int(index) className="green-blue-list-item" style=userClassName>
     <Spread props={"data-user": index}>
       <span className="listing">
         { user.name -> Belt.Option.getWithDefault("") -> React.string }
@@ -33,13 +37,14 @@ let renderUser = (index: int, user: User.user) : React.element => {
 };
 
 [@react.component]
-let make = (~users: array(User.user)) => {
+let make = (~usersWithVisibilityData: array((User.user, bool))) => {
   let (userDetails, setUserDetails_) = React.useState(() => None);
   let (modalOpen, setModalOpen_) = React.useState(() => false);
 
   let setUserDetails = (data: option(User.user)) : unit => setUserDetails_(_ => data);
   let setModalOpen = (data: bool) : unit => setModalOpen_(_ => data);
 
+  let (users, _) = Belt.Array.unzip(usersWithVisibilityData);
   let emptyUsersArray = Belt.Array.length(users) === 0;
 
   <>
@@ -48,7 +53,7 @@ let make = (~users: array(User.user)) => {
       | true => <span className="listing">{React.string("No results")}</span>
       | false =>
         <ul className="green-blue-list" onClick=setUserDetailsForModal(users, setUserDetails, setModalOpen)>
-          { users -> Belt.Array.mapWithIndex(renderUser) -> React.array }
+          { usersWithVisibilityData -> Belt.Array.mapWithIndex(renderUser) -> React.array }
         </ul>
       };
     }

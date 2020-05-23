@@ -14,6 +14,15 @@ let fullWidth = ReactDOMRe.Style.make(
 
 let clickableItem = ReactDOMRe.Style.make(
   ~cursor="pointer", 
+  ~opacity="1",
+  ~transition="all 0.3s",
+());
+
+let hiddenItem = ReactDOMRe.Style.make(
+  ~opacity="0",
+  ~height="0",
+  ~margin="0",
+  ~transition="all 0.3s",
 ());
 
 let modalContainer = ReactDOMRe.Style.make(
